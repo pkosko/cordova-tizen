@@ -1,127 +1,44 @@
-Cordova implementation for TIZEN
-===
+<!--
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#  KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+-->
 
-Cordova implementation for TIZEN is a JavaScript Wrapper library allowing to build and run Cordova based projects on [TIZEN](https://www.tizen.org/).
-Cordova based applications are, at the core, an application written with web technology: HTML, CSS and JavaScript.
+# cordova-test-platform
 
-Apache Cordova is an open source project at the Apache Software Foundation (ASF). 
+This repo contains the code for an [Apache Cordova](http://cordova.apache.org)
+platform that allows you to build applications that target NOTHING. This
+platform is purely for testing, although it is also a good resource to see the
+minimum requirements to implement a new platform.
 
-Pre-requisites
----
- - [TIZEN SDK 2.2  Release](https://developer.tizen.org/sdk)
- - sync the last Cordova git repository 2.9.x branch
+[Apache Cordova](http://cordova.apache.org) is a project of [The Apache Software Foundation (ASF)](http://apache.org)
 
-TIZEN is not yet integrated in Cordova 3.x branch.
-(This the next Goal.)
- 
-git arcane:
- - looking remote repository branches : ... git branch -r
- - getting and checkout a branch:.......... git checkout -t origin/2.9.x
+# How to Use This
 
-once you are on the 2.9.x local branch, you can create a new branch from it to store your work
-git branch myFeature-2.9.x
+This repository contains a reference implementation of Cordova's Platform API.
+The Platform API defines interfaces for Cordova tooling to be able to create,
+build/compile, run/emulate and clean Cordova projects targeted at a specific
+platform. Core Cordova platforms such as cordova-android and cordova-ios
+implement this API. This API is then used by tools such as cordova-cli and
+cordova-lib when managing platform-specific actions in cross-platform Cordova
+projects.
 
-Directory Structure
----
-    /tizen
-        /samples ..... Ready-to-run TIZEN Eclipse IDE sample projects
-        /templates ... Cordova TIZEN SDK projects templates for TIZEN Eclipse IDE
-        /www ......... Barebones project assets
-
-Import a Cordova TIZEN project sample into TIZEN Eclipse IDE
-----
-
-1. File -> Import
-2. Select Import Source: Widget -> Projects and Widget file -> Next
-3. Import Widget -> Select root directory: Point to the one of the sample projects (e.g: /cordova-basic) -> Finish
-4. The project should be available now in the TIZEN Eclipse IDE Project Explorer
-5. You can now go to the [Build and Deploy a project] section of this document
-
-
-Install Cordova TIZEN project templates into TIZEN Eclipse IDE
-----
-1. Copy the entire /templates directory content into you TIZEN Eclipse IDE web templates directory (e.g: /home/my_username/tizen-sdk/IDE/Templates/web)
-2. You can now create Cordova TIZEN project by using TIZEN Eclipse IDE project templates
-
-Create a project with the TIZEN Eclipse IDE Cordova TIZEN project templates
-----
-1. File -> New -> TIZEN Web Project.
-2. Select: User Template.
-3. Select: User defined.
-4. Select one of the Cordova templates, fill the Project Name, then -> Finish.
-5. The project should be available now in the TIZEN Eclipse IDE Project Explorer
-6. You can now go to the [Build and Deploy a project] section of this document
-
-Build and Deploy a project
-----
-1. Select and Right click the project -> Select Build project, this will generate your project widget package (.wgt)
-2. Select and Right click the project -> Run As -> Here you can choose:
- - TIZEN Web Simulator application
- - TIZEN Web application (this will deploy you application to a pre-launched TIZEN emulator or a TIZEN connected device)
-
-Barebones project assets
-----
-
-The `www` folder contains the Cordova specific assets that must be available in a TIZEN Web project to make it 'Cordova enabled'.
-If you have an existing TIZEN Web application project, copy/merge these files into its root directory.
-
-    /www
-        config.xml .............. TIZEN configuration file
-        cordova-x.y.z.js ........ TIZEN Cordova JavaScript API implementation library
-        /sounds
-            beep.wav ............ Needed for Cordova Notification API implementation
-
-Add the following lines into the `<head>` section of your `index.html` project file:
-
-    <script type="text/javascript" src="js/cordova.x.y.z.js"></script>
-
-`config.xml` is a sample that you are free to alter or merge with an existing TIZEN configuration file.
-It gives privileges access to TIZEN API, possible access to the web (URL), as well as other elements they may be required by a project as described by TIZEN SDK Documentation.
-Sample proposed here contains all elements required by Cordova API.
-
-Note that the "system" is necessary to get the Cordova "Device Ready" event to fire telling application Cordova is ready to be used
-In TIZEN SDK previous to SDK 2.1, the privileges was named "systeminfo".
-In TIZEN SDK 2.1, the config.xml editor was not proposing the system privileges, and it had to be added manually.
-This issue was fixed in TIZEN SDK 2.2
-
-config.xml file generated by  TIZEN SDK Eclipse IDE TIZEN Web Wizard is referring application's icon as icon.png. 
-In framework and www folders you will find  icon.png and cordova_117.png files.
-
-In TIZEN SDK 2.2 application icons are 117 by 117 pixels wide as png files.
-If you use cordova_117.png or another named file you have to change it in your application's config.xml file.
- 
-Further Reading
----
-
-- [Cordova home](http://incubator.apache.org/cordova/)
-- [Cordova Documentation](http://docs.cordova.io)
-- [Cordova Issue Tracker](https://issues.apache.org/jira/browse/CB)
-- [TIZEN Developers Site](https://developer.tizen.org/)
-- [TIZEN Developers Guide](https://developer.tizen.org/documentation/dev-guide)
-- [TIZEN Developers Forum](https://developer.tizen.org/forums/)
-
-www/
-framework/
-
-    - cordova icon, for TIZEN we are not quite sure about the size to use...now it is a 64*64 png
-    - index html, a starter html file 
-    - cordova-tizen.css, for notifications UI
-    - sounds/ beep.wav, a file that should be used by notifications to play a "beep"
-
-js/
- where to put javascript files generated files from cordova-js build and used by makefile to generate the codova-x.y.z.js file
-
-lib/
-    cordova.js, generated by make file
-
-
-mobile-spec:
-	samples/
-	  TizenCordovaMobileSpec/
-		mobile-spec adapted to TIZEN SDK 2.2
-	
-    notifications/index.html is loading the cordova-tizen.css file for notifications
-    
-    config.xml that is granting all TIZEN related features as most of them are required by the Codova JavaScript lib
-    
-  
+# Further Reading
+- [Apache Cordova Documentation](http://docs.cordova.io)
+- https://github.com/cordova/cordova-discuss/pull/9
+- https://github.com/cordova/cordova-discuss/pull/12
