@@ -11,6 +11,11 @@ var path = require('path');
 var CordovaLogger = require('cordova-common').CordovaLogger;
 var selfEvents = require('cordova-common').events;
 
+// global variables
+var templateDir;
+var appName;
+var packageId;
+
 var PLATFORM_NAME = 'testplatform';
 
 function setupEvents(externalEventEmitter) {
@@ -65,7 +70,7 @@ Api.createPlatform = function (destination, config, options, events) {
 
     shell.mkdir('-p', destination);
 
-    // move a copy of our api to the new project
+    // move a copy of our api to the new projects
     shell.cp('-r',apiSrcPath, destination);
 
     // I promise I will return
@@ -75,55 +80,146 @@ Api.createPlatform = function (destination, config, options, events) {
 
 
 Api.updatePlatform = function (destination, options, events) {
+    events = setupEvents(events); // TODO check
     events.emit('log', "test-platform:Api:updatePlatform");
     // todo?: create projectInstance and fulfill promise with it.
     return Promise.resolve();
 };
 
 Api.prototype.getPlatformInfo = function () {
-    events.emit('log', "test-platform:Api:getPlatformInfo");
+    console.log('log', "test-platform:Api:getPlatformInfo");
     // return PlatformInfo object
 
     return {
         "locations":this.locations,
         "root": this.root,
         "name": this.platform,
-        "version": { "version" : "1.0.0" },
+        "version": require('./version'),
         "projectConfig": this._config
     };
 };
 
+function copyTree(src, dst) {
+    var files = shell.ls(src);
+    var dstDirName = path.basename(dst);
+    for (f in files) {
+        var name = files[f];
+        console.log("name " + name + " vs dst " + dst );
+        if (name == dstDirName) {
+            continue;
+        } else {
+            s = src + "/" + name;
+            d = dst + "/";
+            console.log("copying " + s + " to " + d);
+            shell.cp('-Rf', s, d);
+        }
+    }
+}
+
+//TODO
 Api.prototype.prepare = function (cordovaProject) {
-    events.emit('log', "test-platform:Api:prepare");
+    console.log('log', "test-platform:Api:prepare");
+    //return require('./lib/prepare').prepare.call(this, cordovaProject);
+
+    // TODO check if tizen CLI is available
+
+    //creating application template using tizen cli
+    // TODO read packageId from config
+    packageId = "cordov0001"; // hardcoded package id
+    // TODO allow call from different dirs
+    var directory = ".";
+    // TODO read the name from config
+    appName = "cordovaTest";
+    // TODO read profile from config
+    var profile = "mobile-4.0";
+    // TODO should we care about template??
+    template = "WebBasicApplication";
+
+    // **** creating Tizen application directory ***********************************
+    templateDir = path.join(directory, appName);
+    if (shell.test('-e', templateDir)) {
+        // remove the directory - application will be created from the beginning
+        //console.log("we should remove " + templateDir);
+        shell.rm('-rf', templateDir);
+    }
+
+    // create application using tizen cli
+    var command = "tizen create web-project -p " + profile + " -t " + template + " -n " + appName + " -- " + templateDir;
+    shell.exec(command);
+
+    // copy the cordova application content into tizen template
+    // Fill the template with proper content of application
+    copyTree(directory, templateDir);
+
+    // TODO
+    //modifyConfigFile(app_name, package_id, dir_name)
+
+    // TODO
+    //copyCordovaFiles(app_name, dir_name)
     return Promise.resolve();
 };
 
+//TODO
 Api.prototype.addPlugin = function (plugin, installOptions) {
-    events.emit('log', "test-platform:Api:addPlugin");
+    console.log('log', "test-platform:Api:addPlugin");
     return Promise.resolve();
 };
 
+//TODO
 Api.prototype.removePlugin = function (plugin, uninstallOptions) {
-    events.emit('log', "test-platform:Api:removePlugin");
+    console.log('log', "test-platform:Api:removePlugin");
     return Promise.resolve();
 };
 
+//TODO
 Api.prototype.build = function (buildOptions) {
-    events.emit('log', "test-platform:Api:build");
+    console.log('log', "test-platform:Api:build");
+
+    // TODO check directory passing into function
+    var d = templateDir;
+
+    var buildCommand = "tizen build-web -- " + d;
+    shell.exec(buildCommand);
+
+    var packageCommand = "tizen package -t wgt -- " + d;
+    shell.exec(packageCommand);
+
     return Promise.resolve();
 };
 
+//TODO
 Api.prototype.run = function(runOptions) {
-    events.emit('log', "test-platform:Api:run");
+    console.log('log', "test-platform:Api:run");
+    // TODO check directory passing into function
+    var d = templateDir;
+
+    //TODO add checking if device is connected
+    //TODO add starting emulator
+
+    // installing application
+    var installCommand = "tizen install -n " + appName + ".wgt -- " + d;
+    shell.exec(installCommand);
+
+    var runCommand = "tizen run -p " + packageId;
+    shell.exec(runCommand);
+
+    shell.exec("./platforms/cordova-test-platform/cordova/lib/runAsTizenApp.py .");
 };
 
+//TODO
 Api.prototype.clean = function(cleanOptions) {
-    events.emit('log', "test-platform:Api:clean");
+    console.log('log', "test-platform:Api:clean");
+    // TODO check directory passing into function
+    var d = templateDir;
+
+    var cleanCommand = "tizen clean -- " + d;
+    shell.exec(cleanCommand);
     return Promise.resolve();
 };
 
+//TODO
 Api.prototype.requirements = function() {
-    events.emit('log', "test-platform:Api:requirements");
+    console.log('log', "test-platform:Api:requirements");
     return true;
 };
 
