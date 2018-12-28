@@ -145,7 +145,11 @@ Api.prototype.prepare = function (cordovaProject) {
 
     // create application using tizen cli
     var command = "tizen create web-project -p " + profile + " -t " + template + " -n " + appName + " -- " + templateDir;
-    shell.exec(command);
+    var res = shell.exec(command);
+    if (res.code != 0) {
+        console.log ("error: " + res.output);
+        return;
+    }
 
     // copy the cordova application content into tizen template
     // Fill the template with proper content of application
@@ -179,10 +183,18 @@ Api.prototype.build = function (buildOptions) {
     var d = templateDir;
 
     var buildCommand = "tizen build-web -- " + d;
-    shell.exec(buildCommand);
+    var res = shell.exec(buildCommand);
+    if (res.code != 0) {
+        console.log ("error: " + res.output);
+        return;
+    }
 
     var packageCommand = "tizen package -t wgt -- " + d;
-    shell.exec(packageCommand);
+    var res = shell.exec(packageCommand);
+    if (res.code != 0) {
+        console.log ("error: " + res.output);
+        return;
+    }
 
     return Promise.resolve();
 };
@@ -193,17 +205,43 @@ Api.prototype.run = function(runOptions) {
     // TODO check directory passing into function
     var d = templateDir;
 
-    //TODO add checking if device is connected
-    //TODO add starting emulator
+    var sdbCheckCommand = "sdb devices";
+    var res = shell.exec(sdbCheckCommand);
+    if (res.code != 0) {
+        console.log ("error: " + res.output);
+        return;
+    } else {
+        //TODO add checking if device is connected
+        //TODO add starting emulator
+        var lines = res.output.split('\n');
+        if (lines.length == 1) {
+            console.log("No devices connected");
+            return;
+        } else if (lines.length > 2) {
+            console.log("Choose device to use");
+            // TODO support proper option?
+            return;
+        } else {
+            console.log("Devices OK");
+        }
+    }
 
     // installing application
-    var installCommand = "tizen install -n " + appName + ".wgt -- " + d;
-    shell.exec(installCommand);
+    // TODO get real name of package
+    var wgtName = "HelloCordova";
+    var installCommand = "tizen install -n " + wgtName + ".wgt -- " + d;
+    var res = shell.exec(installCommand);
+    if (res.code != 0) {
+        console.log ("error: " + res.output);
+        return;
+    }
 
     var runCommand = "tizen run -p " + packageId;
-    shell.exec(runCommand);
-
-    shell.exec("./platforms/cordova-test-platform/cordova/lib/runAsTizenApp.py .");
+    var res = shell.exec(runCommand);
+    if (res.code != 0) {
+        console.log ("error: " + res.output);
+        return;
+    }
 };
 
 //TODO
