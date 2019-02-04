@@ -22,5 +22,5 @@ var os = require('os');
 var path = require('path');
 
 module.exports.getTmpDir = function () {
-    return fs.mkdtempSync(path.join(os.tmpdir(), 'cordova-test-platform-'));
+    return fs.mkdtempSync(path.join(os.tmpdir(), 'cordova-tizen-'));
 };

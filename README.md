@@ -19,7 +19,7 @@
 #
 -->
 
-# cordova-test-platform
+# cordova-tizen
 
 This repo contains the code for an [Apache Cordova](http://cordova.apache.org)
 platform that allows you to build applications that target NOTHING. This
