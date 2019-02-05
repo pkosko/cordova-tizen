@@ -17,18 +17,27 @@
     under the License.
 */
 
+var templateDir = null;
+var projectName = null;
 
-function TizenTemplate () {
-    this.templateDir = null;
-    this.projectName = null;
-}
+console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa TizenTemplate create");
 
-TizenTemplate.prototype.getTemplateDir = function () {
-    return this.templateDir;
+// function TizenTemplate () {
+//     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa TizenTemplate create");
+// }
+var TizenTemplate = {
+    getTemplateDir: function () {
+        return templateDir;
+    },
+    setTemplateDir: function (td) {
+        templateDir = td;
+    },
+    getProjectName: function () {
+        return projectName;
+    },
+    setProjectName: function (pn) {
+        projectName = pn;
+    }
 };
 
-TizenTemplate.prototype.setTemplateDir = function (td) {
-    this.templateDir = td;
-};
-
-module.exports = new TizenTemplate();
+module.exports = TizenTemplate;

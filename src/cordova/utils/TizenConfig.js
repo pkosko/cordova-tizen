@@ -47,7 +47,7 @@ TizenConfig.prototype.getXmlnsTizen = function () {
 };
 
 TizenConfig.prototype.addXmlnsTizen = function () {
-    return this.doc.getroot().attrib['xmlns:tizen'] = "http://tizen.org/ns/widgets";
+    this.doc.getroot().attrib['xmlns:tizen'] = "http://tizen.org/ns/widgets";
 };
 
 TizenConfig.prototype.getName = function () {

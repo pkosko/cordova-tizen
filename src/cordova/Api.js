@@ -13,12 +13,9 @@ var selfEvents = require('cordova-common').events;
 var TizenConfig = require('./utils/TizenConfig.js');
 var tizenTemplate = require('./utils/TizenTemplate.js');
 
-// global variables
-//var templateDir;
-var projectName;
-var packageId;
+console.log("---------------------------------- LOADING cordova-tizen ----------------------------------");
 
-var PLATFORM_NAME = 'tizen';
+var PLATFORM_NAME = 'cordova-tizen';
 
 function setupEvents(externalEventEmitter) {
     if (externalEventEmitter) {
@@ -34,9 +31,7 @@ function setupEvents(externalEventEmitter) {
 }
 
 function Api(platform, platformRootDir, events) {
-    console.log('log', "tizen:Api");
-    console.log("p.kosko platform: " + platform)
-    console.log("p.kosko platformRootDir: " + platformRootDir)
+    console.log("tizen:Api");
 
     this.platform = PLATFORM_NAME;
     this.root = path.resolve(__dirname, '..');
@@ -57,7 +52,7 @@ function Api(platform, platformRootDir, events) {
 }
 
 Api.createPlatform = function (destination, config, options, events) {
-    console.log('log', "test-platform:Api:createPlatform");
+    console.log("test-platform:Api:createPlatform");
     events = setupEvents(events);
 
     // create the destination and the standard place for our api to live
@@ -65,16 +60,13 @@ Api.createPlatform = function (destination, config, options, events) {
 
     var apiSrcPath = __dirname; // default value
     // does options contain the info we desire?
-    console.log("CONFIG:\n" + JSON.stringify(config, null, 2) + "\n");
+    //console.log("CONFIG:\n" + JSON.stringify(config, null, 2) + "\n");
 
-    projectName = config ? config.name() : "HelloCordova";
-    var packageName = config ? config.packageName() : "io.cordova.hellocordova";
+    var projectName = config ? config.name() : "HelloCordova";
 
-    events.emit('log', 'Creating Cordova project for cordova-tizen:');
-    events.emit('log', '\tapiSrcPath: ' + apiSrcPath);
-    events.emit('log', '\tPath: ' + destination);
-    events.emit('log', '\tName: ' + projectName);
-    events.emit('log', '\tPackageName: ' + packageName);
+    console.log('Creating Cordova project for cordova-tizen:');
+    console.log('\tPath: ' + destination);
+    console.log('\tName: ' + projectName);
 
     shell.mkdir('-p', destination);
 
@@ -82,31 +74,28 @@ Api.createPlatform = function (destination, config, options, events) {
     shell.cp('-r', apiSrcPath, destination);
 
     // I promise I will return
-    return Promise.resolve(new Api(PLATFORM_NAME, destination, events));
+    return Promise.resolve(this);
 };
 
-
 Api.updatePlatform = function (destination, options, events) {
-    console.log('log', "test-platform:Api:updatePlatform");
-    console.log("p.kosko - updatePlatform");
+    console.log("test-platform:Api:updatePlatform");
     events = setupEvents(events); // TODO check
-    events.emit('log', "test-platform:Api:updatePlatform");
     // todo?: create projectInstance and fulfill promise with it.
     return Promise.resolve();
 };
 
 Api.prototype.getPlatformInfo = function () {
-    console.log('log', "test-platform:Api:getPlatformInfo");
-    console.log("getPlatformInfo: templateDir: " + tizenTemplate.getTemplateDir());
-    // return PlatformInfo object
-
-    return {
+    console.log("test-platform:Api:getPlatformInfo");
+    // TODO return true values
+    var result = {
         "locations":this.locations,
         "root": this.root,
         "name": this.platform,
         "version": require('./version'),
         "projectConfig": this._config
     };
+    //console.log("Plaform info:\n" + JSON.stringify(result, null, 2) + "\n");
+    return result;
 };
 
 function copyTree(src, dst) {
@@ -118,13 +107,13 @@ function copyTree(src, dst) {
         if (name == dstDirName) {
             continue;
         } else {
-            s = src + "/" + name;
-            d = dst + "/";
+            s = path.resolve(path.join(src, name));
+            d = path.resolve(dst);
             //console.log("copying " + s + " to " + d);
             shell.cp('-Rf', s, d);
         }
     }
-};
+}
 
 function modifyConfigFile(directory, file) {
     var configFile = path.join(directory, 'config.xml')
@@ -138,42 +127,43 @@ function modifyConfigFile(directory, file) {
     // TODO handle file different from www/index.html
     config.changeContentSrc();
 
+    //TODO add filesystem privilege
+
     // save a changed file
     config.write(configFile);
-};
+}
+
+function copyCordovaFiles() {
+    // copy 'lib' directory
+    copyTree(src, dst);
+    // copy cordova.js file
+
+}
 
 function prepareTizenApp() {
     console.log("p.kosko: prepareTizenApp");
 
-    //creating application template using tizen cli
-    // TODO allow call from different dirs
-    var directory = ".";
-    // TODO read the name from config
-    appName = projectName ? projectName : "cordovaTest";
-    // TODO read profile from config
-    var profile = "mobile-4.0";
-    // TODO should we care about template??
-    template = "WebBasicApplication";
+    // take the main directory of application cutting the path on 'platforms'
+    directory = path.resolve(__dirname).split('/platforms/')[0];
+
+    // read the name from config from application's main directory
+    var config = new TizenConfig(path.join(directory, 'config.xml'));
+    var appName = config.getName();
+    var packageId = config.getPackageId();
+    // TODO read profile from config ??
+
+    tizenTemplate.setTemplateDir(path.join(path.resolve(directory), "." + appName));
+    tizenTemplate.setProjectName(appName);
+
+    console.log("prepareTizenApp: " + appName + " templateDir: " + tizenTemplate.getTemplateDir());
 
     // **** creating Tizen application directory ***********************************
-    tizenTemplate.setTemplateDir(path.join(path.resolve(directory), appName));
-    console.log("prepareTizenApp: templateDir: " + tizenTemplate.getTemplateDir());
-
     if (shell.test('-e', tizenTemplate.getTemplateDir())) {
         // remove the directory - application will be created from the beginning
         //console.log("we should remove " + tizenTemplate.getTemplateDir());
         shell.rm('-rf', tizenTemplate.getTemplateDir());
         shell.mkdir(tizenTemplate.getTemplateDir());
     }
-
-    // create application using tizen cli
-    /*var command = "tizen create web-project -p " + profile + " -t " + template + " -n " + appName + " -- " + path.resolve(directory);
-    console.log("COMMAND: "  + command);
-    var res = shell.exec(command);
-    if (res.code != 0) {
-        console.log ("error: " + res.output);
-        return;
-    }*/
 
     // copy the cordova application content into tizen template
     // Fill the template with proper content of application
@@ -189,7 +179,7 @@ function prepareTizenApp() {
 
 //TODO
 Api.prototype.prepare = function (cordovaProject) {
-    console.log('log', "test-platform:Api:prepare");
+    console.log("test-platform:Api:prepare");
     //return require('./lib/prepare').prepare.call(this, cordovaProject);
 
     // TODO check if tizen CLI is available
@@ -202,20 +192,20 @@ Api.prototype.prepare = function (cordovaProject) {
 
 //TODO
 Api.prototype.addPlugin = function (plugin, installOptions) {
-    console.log('log', "test-platform:Api:addPlugin");
+    console.log("test-platform:Api:addPlugin");
     return Promise.resolve();
 };
 
 //TODO
 Api.prototype.removePlugin = function (plugin, uninstallOptions) {
-    console.log('log', "test-platform:Api:removePlugin");
+    console.log("test-platform:Api:removePlugin");
     return Promise.resolve();
 };
 
 
 //TODO
 Api.prototype.build = function (buildOptions) {
-    console.log('log', "test-platform:Api:build");
+    console.log("test-platform:Api:build");
     console.log("build: templateDir: " + tizenTemplate.getTemplateDir());
 
 
@@ -245,7 +235,7 @@ Api.prototype.build = function (buildOptions) {
 
 //TODO
 Api.prototype.run = function(runOptions) {
-    console.log('log', "test-platform:Api:run");
+    console.log("test-platform:Api:run");
     // TODO check directory passing into function
     var d = tizenTemplate.getTemplateDir();
 
@@ -275,7 +265,7 @@ Api.prototype.run = function(runOptions) {
 
     // installing application
     // TODO get real name of package
-    var wgtName = "HelloCordova";
+    var wgtName = tizenTemplate.getProjectName();
     var installCommand = "tizen install -n " + wgtName + ".wgt -- " + d;
     console.log("COMMAND: "  + installCommand);
     var res = shell.exec(installCommand);
@@ -301,7 +291,7 @@ Api.prototype.run = function(runOptions) {
 
 //TODO
 Api.prototype.clean = function(cleanOptions) {
-    console.log('log', "test-platform:Api:clean");
+    console.log("test-platform:Api:clean");
     // TODO check directory passing into function
     var d = tizenTemplate.getTemplateDir();
 
@@ -313,7 +303,7 @@ Api.prototype.clean = function(cleanOptions) {
 
 //TODO
 Api.prototype.requirements = function() {
-    console.log('log', "test-platform:Api:requirements");
+    console.log("test-platform:Api:requirements");
     return true;
 };
 
