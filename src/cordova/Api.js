@@ -11,13 +11,14 @@ var path = require('path');
 var CordovaLogger = require('cordova-common').CordovaLogger;
 var selfEvents = require('cordova-common').events;
 var TizenConfig = require('./utils/TizenConfig.js');
+var tizenTemplate = require('./utils/TizenTemplate.js');
 
 // global variables
-var templateDir;
+//var templateDir;
 var projectName;
 var packageId;
 
-var PLATFORM_NAME = 'cordova-tizen';
+var PLATFORM_NAME = 'tizen';
 
 function setupEvents(externalEventEmitter) {
     if (externalEventEmitter) {
@@ -96,7 +97,7 @@ Api.updatePlatform = function (destination, options, events) {
 
 Api.prototype.getPlatformInfo = function () {
     console.log('log', "test-platform:Api:getPlatformInfo");
-    console.log("getPlatformInfo: templateDir: " + templateDir);
+    console.log("getPlatformInfo: templateDir: " + tizenTemplate.getTemplateDir());
     // return PlatformInfo object
 
     return {
@@ -155,14 +156,14 @@ function prepareTizenApp() {
     template = "WebBasicApplication";
 
     // **** creating Tizen application directory ***********************************
-    templateDir = path.join(path.resolve(directory), appName);
-    console.log("prepareTizenApp: templateDir: " + templateDir);
+    tizenTemplate.setTemplateDir(path.join(path.resolve(directory), appName));
+    console.log("prepareTizenApp: templateDir: " + tizenTemplate.getTemplateDir());
 
-    if (shell.test('-e', templateDir)) {
+    if (shell.test('-e', tizenTemplate.getTemplateDir())) {
         // remove the directory - application will be created from the beginning
-        //console.log("we should remove " + templateDir);
-        shell.rm('-rf', templateDir);
-        shell.mkdir(templateDir);
+        //console.log("we should remove " + tizenTemplate.getTemplateDir());
+        shell.rm('-rf', tizenTemplate.getTemplateDir());
+        shell.mkdir(tizenTemplate.getTemplateDir());
     }
 
     // create application using tizen cli
@@ -176,14 +177,14 @@ function prepareTizenApp() {
 
     // copy the cordova application content into tizen template
     // Fill the template with proper content of application
-    copyTree(directory, templateDir);
+    copyTree(directory, tizenTemplate.getTemplateDir());
 
     // TODO
-    modifyConfigFile(path.resolve(templateDir), 'config.xml')
+    modifyConfigFile(path.resolve(tizenTemplate.getTemplateDir()), 'config.xml');
 
     // TODO
     //copyCordovaFiles(app_name, dir_name)
-    console.log("prepareTizenApp: templateDir: " + templateDir);
+    console.log("prepareTizenApp: templateDir: " + tizenTemplate.getTemplateDir());
 }
 
 //TODO
@@ -194,7 +195,7 @@ Api.prototype.prepare = function (cordovaProject) {
     // TODO check if tizen CLI is available
 
     prepareTizenApp();
-    console.log("prepare: templateDir: " + templateDir);
+    console.log("prepare: templateDir: " + tizenTemplate.getTemplateDir());
 
     return Promise.resolve();
 };
@@ -215,15 +216,15 @@ Api.prototype.removePlugin = function (plugin, uninstallOptions) {
 //TODO
 Api.prototype.build = function (buildOptions) {
     console.log('log', "test-platform:Api:build");
-    console.log("build: templateDir: " + templateDir);
+    console.log("build: templateDir: " + tizenTemplate.getTemplateDir());
 
 
     //prepareTizenApp();
     // TODO check directory passing into function
-    var d = templateDir;
+    var d = tizenTemplate.getTemplateDir();
 
     var buildCommand = "tizen build-web -- " + d;
-    console.log("COMMAND: "  + buildCommand + " (templateDir: " + templateDir + ")");
+    console.log("COMMAND: "  + buildCommand + " (templateDir: " + tizenTemplate.getTemplateDir() + ")");
     //console.log("COMMAND: "  + buildCommand);
     var res = shell.exec(buildCommand);
     if (res.code != 0) {
@@ -246,7 +247,7 @@ Api.prototype.build = function (buildOptions) {
 Api.prototype.run = function(runOptions) {
     console.log('log', "test-platform:Api:run");
     // TODO check directory passing into function
-    var d = templateDir;
+    var d = tizenTemplate.getTemplateDir();
 
     var sdbCheckCommand = "sdb devices";
     var res = shell.exec(sdbCheckCommand);
@@ -302,7 +303,7 @@ Api.prototype.run = function(runOptions) {
 Api.prototype.clean = function(cleanOptions) {
     console.log('log', "test-platform:Api:clean");
     // TODO check directory passing into function
-    var d = templateDir;
+    var d = tizenTemplate.getTemplateDir();
 
     var cleanCommand = "tizen clean -- " + d;
     console.log("COMMAND: "  + cleanCommand);
